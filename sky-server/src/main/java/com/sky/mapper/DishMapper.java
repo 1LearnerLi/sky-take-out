@@ -10,6 +10,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 @Mapper
 public interface DishMapper extends BaseMapper<Dish> {
 
@@ -34,4 +36,11 @@ public interface DishMapper extends BaseMapper<Dish> {
      * @return
      */
     Page<DishVO> pageQuery(@Param("page") Page<DishVO> page, @Param("dto") DishPageQueryDTO dishPageQueryDTO);
+
+    /**
+     *根据分类id查询菜品
+     * @param dish
+     * @return
+     */
+    List<Dish> selectByCategoryIds(Dish dish);
 }

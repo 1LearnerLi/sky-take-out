@@ -8,6 +8,8 @@
         values
             (#{name},#{categoryId},#{price},#{image},#{description},#{status},#{createTime},#{updateTime},#{createUser},#{updateUser})
     </insert>
+
+
     <select id="pageQuery" resultType="com.sky.vo.DishVO">
         select d.*,c.`name` as category_name from dish as d left join category as c on d.`category_id`=c.`id`
         <where>
@@ -22,6 +24,20 @@
             </if>
         </where>
         order by d.create_time desc
+    </select>
+
+
+    <select id="selectByCategoryIds" resultType="com.sky.entity.Dish">
+        select *
+        from dish
+        <where>
+            <if test="categoryId!=null">
+                category_id=#{categoryId}
+            </if>
+            <if test="status!=null">
+                and status=#{status}
+            </if>
+        </where>
     </select>
 
 </mapper>

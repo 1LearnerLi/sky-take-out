@@ -2,6 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.sky.mapper.SetmealDishMapper">
+    <delete id="deleteBySetmealIds">
+        delete
+        from setmeal_dish
+        where setmeal_id in
+        <foreach collection="setmealIds" item="setmealIds" separator="," open="(" close=")">
+            #{setmealIds}
+        </foreach>
+    </delete>
 
     <select id="getSetmealIdsByDishIds" resultType="Long">
         select setmeal_id
@@ -11,5 +19,10 @@
             #{dishId}
         </foreach>
 
+    </select>
+    <select id="selectStatusBySetmealId" resultType="Integer">
+        select d.status
+        from setmeal_dish as sd right join dish as d on sd.dish_id=d.id
+        where sd.setmeal_id=#{setmealId}
     </select>
 </mapper>

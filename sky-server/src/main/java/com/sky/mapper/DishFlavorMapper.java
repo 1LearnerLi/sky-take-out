@@ -15,7 +15,7 @@ public interface DishFlavorMapper extends BaseMapper<DishFlavor> {
     void deleteByDishId(Long dishId);
 
     /**
-     * 根据n个dishId删除口味表中与菜品关联的口味数据
+     * 根据多个dishId删除口味表中与菜品关联的口味数据
      * @param dishIds
      */
     void deleteByDishIds(List<Long> dishIds);

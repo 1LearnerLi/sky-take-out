@@ -1,6 +1,7 @@
 package com.sky.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
@@ -8,11 +9,13 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -22,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -34,6 +38,8 @@ public class DishServiceImpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private SetmealMapper setmealMapper;
 
     /**
      * 新增菜品和对应的口味
@@ -67,7 +73,6 @@ public class DishServiceImpl implements DishService {
      * @param dishPageQueryDTO
      * @return
      */
-    @Override
     public PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO) {
 
         Page<DishVO> page = new Page<>(dishPageQueryDTO.getPage(), dishPageQueryDTO.getPageSize());
@@ -88,19 +93,13 @@ public class DishServiceImpl implements DishService {
         //判断当前菜品是否能够删除：     是否存在起售中的菜品
 
         List<Dish> dishes = dishMapper.selectByIds(ids);
-        for (Dish dish : dishes) {
-            if (dish.getStatus()==StatusConstant.ENABLE){
-                throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
-
+        if (dishes == null || dishes.size() == 0) {
+            for (Dish dish : dishes) {
+                if (dish.getStatus() == StatusConstant.ENABLE) {
+                    throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
+                }
             }
         }
-
-        /*for (Long id : ids) {
-            Dish dish = dishMapper.selectById(id);
-            if (dish.getStatus() == StatusConstant.ENABLE) {
-                throw new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
-            }
-        }*/
 
         //判断当前菜品是否能够删除：     是否被套餐关联
 
@@ -119,6 +118,7 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 根据Id查询菜品
+     *
      * @param id
      * @return
      */
@@ -128,11 +128,11 @@ public class DishServiceImpl implements DishService {
         Dish dish = dishMapper.selectById(id);
 
         //按id查dishFlavor表
-        List<DishFlavor> dishFlavor=dishFlavorMapper.selectByDishId(id);
+        List<DishFlavor> dishFlavor = dishFlavorMapper.selectByDishId(id);
 
         //查询到的所有数据封装进dishVO
         DishVO dishVO = new DishVO();
-        BeanUtils.copyProperties(dish,dishVO);
+        BeanUtils.copyProperties(dish, dishVO);
         dishVO.setFlavors(dishFlavor);
 
         return dishVO;
@@ -140,9 +140,11 @@ public class DishServiceImpl implements DishService {
 
     /**
      * 修改菜品
+     *
      * @param dishDTO
      * @return
      */
+    @Transactional
     public void updateWithFlavor(DishDTO dishDTO) {
         //基于设计理念，使用与dish表贴合的Dish类进行修改dish表操作
         Dish dish = new Dish();
@@ -164,6 +166,53 @@ public class DishServiceImpl implements DishService {
         }
 
 
+    }
+
+    /**
+     * 菜品起售、停售
+     *
+     * @param saleStatus
+     * @param id
+     */
+    public void updateSaleStatus(Integer saleStatus, Long id) {
+        Dish build = Dish.builder()
+                .id(id)
+                .status(saleStatus)
+                .build();
+        dishMapper.updateById(build);
+
+        //如果要停售该商品，要先查询该菜品是否已关联套餐，若已关联，需将已关联的套餐也停售
+        if (saleStatus == StatusConstant.DISABLE) {
+            List<Long> ids = Arrays.asList(id);
+            List<Long> setmealIds = setmealDishMapper.getSetmealIdsByDishIds(ids);
+            if (setmealIds != null && setmealIds.size() > 0) {
+                for (Long setmealId : setmealIds) {
+                    Setmeal setmeal = Setmeal.builder()
+                            .id(setmealId)
+                            .status(StatusConstant.DISABLE)
+                            .build();
+
+                    setmealMapper.updateById(setmeal);
+                }
+            }
+        }
+    }
+
+    /**
+     * 根据分类id查询菜品
+     *
+     * @param categoryId
+     * @return
+     */
+    public List<Dish> getDishByCategoryId(Long categoryId) {
+
+        Dish dish = Dish.builder()
+                .categoryId(categoryId)
+                .status(StatusConstant.ENABLE)
+                .build();
+
+        List<Dish> dishes = dishMapper.selectByCategoryIds(dish);
+        return dishes;
     }
 
 
