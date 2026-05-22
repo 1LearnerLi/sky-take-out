@@ -96,7 +96,7 @@ public class SetmealController {
      */
     @PostMapping("/status/{status}")
     @ApiOperation("套餐起售、停售")
-    public Result updateSaleStatus(@PathVariable Integer saleStatus, Long id) {
+    public Result updateSaleStatus(@PathVariable("status") Integer saleStatus, Long id) {
         setmealService.updateSaleStatus(saleStatus,id);
         return Result.success();
     }
