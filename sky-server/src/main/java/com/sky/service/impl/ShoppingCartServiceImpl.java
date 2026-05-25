@@ -29,7 +29,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Autowired
     private SetmealMapper setmealMapper;
 
-
     /**
      * 添加购物车
      *
@@ -81,7 +80,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         Long userId = BaseContext.getCurrentId();
 
         LambdaQueryWrapper<ShoppingCart> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(userId!=null,ShoppingCart::getUserId, userId);
+        wrapper.eq(userId != null, ShoppingCart::getUserId, userId);
         List<ShoppingCart> shoppingCarts = shoppingCartMapper.selectList(wrapper);
 
         return shoppingCarts;
@@ -94,6 +93,28 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         LambdaQueryWrapper<ShoppingCart> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ShoppingCart::getUserId, BaseContext.getCurrentId());
         shoppingCartMapper.delete(wrapper);
+    }
+
+    /**
+     * 删除购物车中一个商品
+     *
+     * @param shoppingCartDTO
+     */
+    public void deleteOne(ShoppingCartDTO shoppingCartDTO) {
+        ShoppingCart cart = new ShoppingCart();
+        BeanUtils.copyProperties(shoppingCartDTO, cart);
+        cart.setUserId(BaseContext.getCurrentId());
+        //查询购物车中是否该数据
+        ShoppingCart shoppingCart = shoppingCartMapper.list(cart);
+        if (shoppingCart.getNumber() > 1) {
+            //如果剩余数量>1
+            shoppingCart.setNumber(shoppingCart.getNumber() - 1);
+            shoppingCartMapper.updateById(shoppingCart);
+        } else {
+            //如果剩余数量=1
+            shoppingCartMapper.deleteById(shoppingCart);
+        }
+
     }
 
 
