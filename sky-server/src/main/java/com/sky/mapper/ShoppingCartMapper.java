@@ -21,4 +21,11 @@ public interface ShoppingCartMapper extends BaseMapper<ShoppingCart> {
      * @return
      */
     ShoppingCart list(ShoppingCart shoppingCart);
+
+    /**
+     * 按userId清空购物车
+     * @param userId
+     */
+    @Delete("delete from shopping_cart where user_id=#{userId};")
+    void deleteByUserId(Long userId);
 }
