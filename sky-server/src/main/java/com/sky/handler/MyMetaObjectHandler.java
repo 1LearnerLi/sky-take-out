@@ -17,6 +17,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
         this.strictInsertFill(metaObject, "createUser", Long.class, BaseContext.getCurrentId());
         this.strictInsertFill(metaObject, "updateUser", Long.class, BaseContext.getCurrentId());
+        this.strictInsertFill(metaObject, "orderTime", LocalDateTime.class, LocalDateTime.now());
     }
 
     @Override

@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 public class Orders implements Serializable {
 
     /**
-     * 订单状态 1待付款 2待接单 3已接单 4派送中 5已完成 6已取消
+     * 订单状态 1待付款 2待接单 3已接单（待派送） 4派送中 5已完成 6已取消
      */
     public static final Integer PENDING_PAYMENT = 1;
     public static final Integer TO_BE_CONFIRMED = 2;
@@ -57,7 +57,7 @@ public class Orders implements Serializable {
     private Long addressBookId;
 
     //下单时间
-//    @TableField(fill = FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime orderTime;
 
     //结账时间
