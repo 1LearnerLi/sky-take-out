@@ -39,4 +39,11 @@ public interface OrderMapper extends BaseMapper<Orders> {
      * @return
      */
     Double sumByMap(Map map);
+
+    /**
+     * 根据动态条件统计用户数据
+     * @return
+     */
+    Integer countByMap(Map map);
+
 }

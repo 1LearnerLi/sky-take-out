@@ -3,13 +3,14 @@ package com.sky.service.impl;
 import com.sky.entity.Orders;
 import com.sky.mapper.OrderMapper;
 import com.sky.mapper.ReportMapper;
+import com.sky.mapper.UserMapper;
 import com.sky.service.ReportService;
 import com.sky.vo.TurnoverReportVO;
+import com.sky.vo.UserReportVO;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,6 +29,8 @@ public class ReportServiceImpl implements ReportService {
     private ReportMapper reportMapper;
     @Autowired
     private OrderMapper orderMapper;
+    @Autowired
+    private UserMapper userMapper;
 
 
     /**
@@ -76,7 +79,50 @@ public class ReportServiceImpl implements ReportService {
                 .dateList(date)
                 .turnoverList(StringUtils.join(turnoverList, ","))
                 .build();
+    }
+
+    /**
+     * 统计指定时间区间内的用户数据
+     *
+     * @param begin
+     * @param end
+     * @return
+     */
+    public UserReportVO getUserStatistics(LocalDate begin, LocalDate end) {
+        //查找begin到end范围内所有日期
+        //使用集合封装
+        List<LocalDate> dateList = new ArrayList<>();
+        //将范围内日期一个个封装
+        dateList.add(begin);
+        while (!begin.equals(end)) {
+            begin = begin.plusDays(1);
+            dateList.add(begin);
+        }
+        //将集合转为字符串，并以逗号分割（lang包下的String.join方法也有相同作用）
+        String date = StringUtils.join(dateList, ",");
 
 
+        //封装每天新增用户数量
+        List<Integer> newUserList = new ArrayList<>();
+
+        //封装每天总用户数量
+        List<Integer> totalUserList = new ArrayList<>();
+
+        Map map = new HashMap<>();
+        for (LocalDate localDate : dateList) {
+            LocalDateTime beginTime = LocalDateTime.of(localDate, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(localDate, LocalTime.MAX);
+            //create_time < endTime
+            map.put("endTime", endTime);
+            totalUserList.add(orderMapper.countByMap(map) == null ? 0 : orderMapper.countByMap(map));
+            map.put("beginTime", beginTime);
+            //create_time < endTime and create_time > beginTime
+            newUserList.add(orderMapper.countByMap(map) == null ? 0 : orderMapper.countByMap(map));
+        }
+        return UserReportVO.builder()
+                .dateList(date)
+                .newUserList(StringUtils.join(newUserList, ','))
+                .totalUserList(StringUtils.join(totalUserList, ','))
+                .build();
     }
 }
