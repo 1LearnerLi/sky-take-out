@@ -344,11 +344,12 @@ public class OrderServiceImpl implements OrderService {
     private String getOrderDishes(Long orderId) {
         //查询出指定orderId的orderDetail数据
         List<OrderDetail> orderDetails = orderDetailMapper.selectList(new LambdaQueryWrapper<OrderDetail>().eq(OrderDetail::getOrderId, orderId));
-        String orderDishes = "";
+        StringBuffer orderDishes=new StringBuffer();
         for (OrderDetail orderDetail : orderDetails) {
             //将名字价格拼成字符串
-            String name = orderDetail.getName() + "*" + orderDetail.getNumber() + ";" + " ";
-            orderDishes += name;
+            String name = orderDetail.getName() + "*" + orderDetail.getNumber() + ";";
+            orderDishes .append(name);
+            orderDishes.append(" ");
         }
 
         /*//另一种方式： 使用stream.map生成List新集合，之后使用String.join将List转成String
@@ -358,7 +359,7 @@ public class OrderServiceImpl implements OrderService {
         }).collect(Collectors.toList());
         return String.join(" ",list);*/
 
-        return orderDishes;
+        return String.valueOf(orderDishes);
     }
 
     /**

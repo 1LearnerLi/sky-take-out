@@ -9,6 +9,8 @@ import com.sky.vo.OrderVO;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Map;
+
 public interface OrderMapper extends BaseMapper<Orders> {
     /**
      * 管理端订单搜索
@@ -31,4 +33,10 @@ public interface OrderMapper extends BaseMapper<Orders> {
      */
     void update(Orders orders);
 
+    /**
+     * 根据动态条件统计营业额（总金额）
+     * @param map
+     * @return
+     */
+    Double sumByMap(Map map);
 }
